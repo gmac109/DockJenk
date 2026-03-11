@@ -9,7 +9,7 @@ sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -aG docker $USER
 newgrp docker
-\```
+```
 
 ##Jenkins Installation Steps
 To set up Jenkins on this machine, run the following commands:
@@ -27,4 +27,4 @@ echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc]" \
   /etc/apt/sources.list.d/jenkins.list > /dev/null
 sudo apt update
 sudo apt install jenkins
-\```
+```
