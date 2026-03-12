@@ -53,6 +53,14 @@ def complete_task(task_id):
     cur.close()
     return redirect(url_for('index'))
 
+@app.route('/count')
+def count():
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT COUNT(*) FROM tasks")
+    total = cur.fetchone()[0]
+    cur.close()
+    return f"<h1>Total Tasks: {total}</h1>"
+
 @app.route('/delete/<int:task_id>')
 def delete_task(task_id):
     cur = mysql.connection.cursor()
