@@ -1,15 +1,18 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_mysqldb import MySQL
 import os
 
 app = Flask(__name__)
-
 app.config['MYSQL_HOST'] = os.environ.get('MYSQL_HOST', 'mysql')
 app.config['MYSQL_USER'] = os.environ.get('MYSQL_USER', 'root')
 app.config['MYSQL_PASSWORD'] = os.environ.get('MYSQL_PASSWORD', 'root')
 app.config['MYSQL_DB'] = os.environ.get('MYSQL_DB', 'devops')
 
 mysql = MySQL(app)
+
+APP_VERSION  = os.environ.get('APP_VERSION', 'v1.0.0')
+BUILD_NUMBER = os.environ.get('BUILD_NUMBER', 'local')
+GIT_COMMIT   = os.environ.get('GIT_COMMIT', 'unknown')[:7]
 
 def init_db():
     cur = mysql.connection.cursor()
@@ -33,7 +36,7 @@ def index():
     cur.execute("SELECT * FROM tasks ORDER BY created_at DESC")
     tasks = cur.fetchall()
     cur.close()
-    return render_template('index.html', tasks=tasks)
+    return render_template('index.html', tasks=tasks, app_version=APP_VERSION, build_number=BUILD_NUMBER, git_commit=GIT_COMMIT)
 
 @app.route('/add', methods=['POST'])
 def add_task():
@@ -74,6 +77,10 @@ def delete_task(task_id):
 @app.route('/health')
 def health():
     return "OK", 200
+
+@app.route('/version')
+def version():
+    return jsonify({"version": APP_VERSION, "build_number": BUILD_NUMBER, "git_commit": GIT_COMMIT})
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
