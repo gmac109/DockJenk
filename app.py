@@ -1,0 +1,69 @@
+from flask import Flask, render_template, request, redirect, url_for
+from flask_mysqldb import MySQL
+import os
+
+app = Flask(__name__)
+
+app.config['MYSQL_HOST'] = os.environ.get('MYSQL_HOST', 'mysql')
+app.config['MYSQL_USER'] = os.environ.get('MYSQL_USER', 'root')
+app.config['MYSQL_PASSWORD'] = os.environ.get('MYSQL_PASSWORD', 'root')
+app.config['MYSQL_DB'] = os.environ.get('MYSQL_DB', 'devops')
+
+mysql = MySQL(app)
+
+def init_db():
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS tasks (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            due_date DATE,
+            is_complete BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    mysql.connection.commit()
+    cur.close()
+
+@app.route('/')
+def index():
+    init_db()
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM tasks ORDER BY created_at DESC")
+    tasks = cur.fetchall()
+    cur.close()
+    return render_template('index.html', tasks=tasks)
+
+@app.route('/add', methods=['POST'])
+def add_task():
+    title = request.form.get('title')
+    due_date = request.form.get('due_date') or None
+    if title:
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO tasks (title, due_date) VALUES (%s, %s)", (title, due_date))
+        mysql.connection.commit()
+        cur.close()
+    return redirect(url_for('index'))
+
+@app.route('/complete/<int:task_id>')
+def complete_task(task_id):
+    cur = mysql.connection.cursor()
+    cur.execute("UPDATE tasks SET is_complete = NOT is_complete WHERE id = %s", (task_id,))
+    mysql.connection.commit()
+    cur.close()
+    return redirect(url_for('index'))
+
+@app.route('/delete/<int:task_id>')
+def delete_task(task_id):
+    cur = mysql.connection.cursor()
+    cur.execute("DELETE FROM tasks WHERE id = %s", (task_id,))
+    mysql.connection.commit()
+    cur.close()
+    return redirect(url_for('index'))
+
+@app.route('/health')
+def health():
+    return "OK", 200
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=5000)

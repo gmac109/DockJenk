@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f0f1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #a78bfa;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 32px;
+            font-size: 0.95rem;
+        }
+
+        /* Add Task Form */
+        .add-form {
+            background: #1a1a2e;
+            border: 1px solid #2d2d44;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 32px;
+        }
+
+        .add-form h2 {
+            font-size: 1rem;
+            color: #a78bfa;
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .add-form input[type="text"] {
+            flex: 1;
+            min-width: 180px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid #2d2d44;
+            background: #0f0f1a;
+            color: #e0e0e0;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        .add-form input[type="text"]:focus {
+            border-color: #a78bfa;
+        }
+
+        .add-form input[type="date"] {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid #2d2d44;
+            background: #0f0f1a;
+            color: #6b7280;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .btn-add {
+            padding: 10px 22px;
+            background: #a78bfa;
+            color: #0f0f1a;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-add:hover { background: #7c3aed; color: #fff; }
+
+        /* Task List */
+        .task-list { display: flex; flex-direction: column; gap: 12px; }
+
+        .task-card {
+            background: #1a1a2e;
+            border: 1px solid #2d2d44;
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            transition: border 0.2s;
+        }
+
+        .task-card:hover { border-color: #a78bfa44; }
+
+        .task-card.done { opacity: 0.5; }
+
+        .task-card.done .task-title {
+            text-decoration: line-through;
+            color: #6b7280;
+        }
+
+        .task-info { flex: 1; }
+
+        .task-title {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .task-due {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .task-actions { display: flex; gap: 8px; }
+
+        .btn-complete {
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: 1px solid #a78bfa;
+            background: transparent;
+            color: #a78bfa;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-complete:hover { background: #a78bfa; color: #0f0f1a; }
+
+        .task-card.done .btn-complete {
+            border-color: #6b7280;
+            color: #6b7280;
+        }
+
+        .btn-delete {
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: 1px solid #ef4444;
+            background: transparent;
+            color: #ef4444;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-delete:hover { background: #ef4444; color: #fff; }
+
+        .empty {
+            text-align: center;
+            color: #6b7280;
+            padding: 48px 0;
+            font-size: 0.95rem;
+        }
+
+        .empty span { display: block; font-size: 2.5rem; margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>TaskFlow ✦</h1>
+        <p class="subtitle">Deployed via Jenkins CI/CD on AWS EC2</p>
+
+        <!-- Add Task Form -->
+        <div class="add-form">
+            <h2>New Task</h2>
+            <form action="/add" method="POST">
+                <div class="form-row">
+                    <input type="text" name="title" placeholder="What needs to be done?" required>
+                    <input type="date" name="due_date">
+                    <button type="submit" class="btn-add">+ Add</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Task List -->
+        <div class="task-list">
+            {% if tasks %}
+                {% for task in tasks %}
+                <div class="task-card {% if task[3] %}done{% endif %}">
+                    <div class="task-info">
+                        <div class="task-title">{{ task[1] }}</div>
+                        {% if task[2] %}
+                        <div class="task-due">📅 Due: {{ task[2] }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="task-actions">
+                        <a href="/complete/{{ task[0] }}">
+                            <button class="btn-complete">
+                                {% if task[3] %}Undo{% else %}Done{% endif %}
+                            </button>
+                        </a>
+                        <a href="/delete/{{ task[0] }}">
+                            <button class="btn-delete">Delete</button>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty">
+                    <span>📋</span>
+                    No tasks yet — add one above!
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
+```
