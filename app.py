@@ -20,6 +20,7 @@ def init_db():
             due_date DATE,
             is_complete BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            priority VARCHAR(10) DEFAULT 'Medium'
         )
     """)
     mysql.connection.commit()
@@ -38,6 +39,7 @@ def index():
 def add_task():
     title = request.form.get('title')
     due_date = request.form.get('due_date') or None
+    priority = request.form.get('priority', 'Medium')
     if title:
         cur = mysql.connection.cursor()
         cur.execute("INSERT INTO tasks (title, due_date) VALUES (%s, %s)", (title, due_date))
