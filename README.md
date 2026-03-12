@@ -197,3 +197,35 @@ After a successful build the TaskFlow app is live at:
 http://<ec2-public-ip>:5000
 ```
 Jenkins pipeline name: Payload
+
+## Deployment Fix: AWS Security Group
+
+After a successful Jenkins build both containers were running but the 
+app was not accessible in the browser.
+
+**Problem:** Port 5000 was not open in the AWS Security Group inbound rules.
+**Fix:** Added the following inbound rule in the AWS Console:
+
+| Type | Protocol | Port | Source |
+|------|----------|------|--------|
+| Custom TCP | TCP | 5000 | 0.0.0.0/0 |
+
+After saving the rule the app was immediately accessible at:
+```
+http://<ec2-public-ip>:5000
+```
+
+---
+
+## Swap Memory Fix
+
+**Problem:** Jenkins build froze and was killed by the OS due to running 
+out of RAM on the t2.micro (1GB RAM).  
+**Fix:** Added 2GB of swap memory to use disk space as extra RAM:
+```bash
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
