@@ -47,6 +47,8 @@ def add_task():
         cur = mysql.connection.cursor()
         cur.execute("INSERT INTO tasks (title, due_date, priority) VALUES (%s, %s, %s)", (title, due_date, priority))
         mysql.connection.commit()
+        cur.execute("INSERT INTO tasks (title, due_date, priority) VALUES (%s, %s, %s)", (title, due_date, priority))
+        mysql.connection.commit()
         cur.close()
     return redirect(url_for('index'))
 
