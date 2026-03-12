@@ -229,3 +229,77 @@ sudo mkswap /swapfile
 sudo swapon /swapfile
 echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 ```
+## Setting Up GitHub Webhook (Auto-trigger Jenkins)
+
+By default Jenkins does not automatically build when code is pushed.
+A webhook tells GitHub to notify Jenkins every time a push happens.
+
+### Step 1: Update Jenkins Pipeline Config
+1. Go to your Payload project -> Configure
+2. Scroll to Build Triggers
+3. Check the box: GitHub hook trigger for GITScm polling
+4. Hit Save
+
+### Step 2: Add Webhook on GitHub
+1. Go to your GitHub repo -> Settings -> Webhooks
+2. Click Add webhook
+3. Fill in:
+
+| Field | Value |
+|-------|-------|
+| Payload URL | http://3.15.223.170:8080/github-webhook/ |
+| Content type | application/json |
+| Secret | leave blank |
+| Trigger | Just the push event |
+
+4. Click Add webhook
+
+### Result
+Now every git push to main automatically triggers the Jenkins 
+pipeline with no manual steps required:
+```
+git push origin main
+      |
+      v
+GitHub notifies Jenkins via webhook
+      |
+      v
+Jenkins automatically runs pipeline
+      |
+      v
+New code deployed to http://3.15.223.170:5000
+```
+## Manual Approval Gate
+
+A manual approval stage was added to the Jenkins pipeline to ensure 
+a human reviews and approves the build before it gets deployed to 
+production. This is a common compliance practice in real DevOps teams.
+
+### How it works
+```
+Stage 1: Clone Code          -> Auto
+Stage 2: Build Docker Image  -> Auto
+Stage 3: Awaiting Approval   -> PAUSES and waits for human approval
+Stage 4: Deploy              -> Only runs after approval
+```
+
+### How to approve
+1. Go to Jenkins -> Payload project
+2. Click the running build
+3. You will see this prompt:
+
+Code has been built. Do you approve deployment to production?
+[ Yes, Deploy it! ]  [ Abort ]
+
+4. Click Yes, Deploy it! to deploy or Abort to cancel
+
+### Jenkinsfile change
+Added one new stage between Build and Deploy:
+```groovy
+stage('Awaiting Approval') {
+    steps {
+        input message: 'Code has been built. Do you approve deployment to production?',
+              ok: 'Yes, Deploy it!'
+    }
+}
+```

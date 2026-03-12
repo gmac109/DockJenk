@@ -13,6 +13,12 @@ pipeline {
                 sh 'docker build -t flask-app:latest .'
             }
         }
+        stage('Awaiting Approval') {
+            steps {
+                input message: 'Code has been built. Do you approve deployment to production?',
+                      ok: 'Yes, Deploy it!'
+            }
+        }
         stage('Deploy with Docker Compose') {
             steps {
                 sh 'docker compose down || true'
