@@ -247,7 +247,7 @@ A webhook tells GitHub to notify Jenkins every time a push happens.
 
 | Field | Value |
 |-------|-------|
-| Payload URL | http://3.15.223.170:8080/github-webhook/ |
+| Payload URL | http://<ec2-public-ip>:8080/github-webhook/ |
 | Content type | application/json |
 | Secret | leave blank |
 | Trigger | Just the push event |
