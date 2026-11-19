@@ -5,8 +5,8 @@ services:
     container_name: mysql
     image: mysql
     environment:
-      MYSQL_ROOT_PASSWORD: "root"
-      MYSQL_DATABASE: "devops"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DB}"
     ports:
       - "3306:3306"
 
@@ -34,10 +34,13 @@ services:
       - "5000:5000"
 
     environment:
-      - MYSQL_HOST=mysql
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=root
-      - MYSQL_DB=devops
+      - MYSQL_HOST=${MYSQL_HOST:-mysql}
+      - MYSQL_USER=${MYSQL_USER:-root}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DB=${MYSQL_DB:-devops}
+      - APP_VERSION=${APP_VERSION:-v1.0.0}
+      - BUILD_NUMBER=${BUILD_NUMBER:-local}
+      - GIT_COMMIT=${GIT_COMMIT:-unknown}
 
     networks:
       - two-tier-nt

@@ -1,10 +1,18 @@
 pipeline {
     agent any
+
+    environment {
+        APP_VERSION = 'v1.0.0'
+        MYSQL_HOST  = 'mysql'
+        MYSQL_USER  = 'root'
+        MYSQL_DB    = 'devops'
+    }
+
     stages {
         stage('Clone Code') {
             steps {
-                git branch: 'main', 
-                    credentialsId: 'github-token', 
+                git branch: 'main',
+                    credentialsId: 'github-token',
                     url: 'https://github.com/gmac109/DockJenk.git'
             }
         }
@@ -21,8 +29,14 @@ pipeline {
         }
         stage('Deploy with Docker Compose') {
             steps {
-                sh 'docker compose down || true'
-                sh 'docker compose up -d --build'
+                withCredentials([string(credentialsId: 'mysql-root-password', variable: 'MYSQL_PASSWORD')]) {
+                    sh '''
+                        export MYSQL_ROOT_PASSWORD="$MYSQL_PASSWORD"
+                        export GIT_COMMIT=$(git rev-parse --short HEAD)
+                        docker compose down || true
+                        docker compose up -d --build
+                    '''
+                }
             }
         }
     }
